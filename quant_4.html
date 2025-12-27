@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quant 4.0: 算法交易前沿</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* 自定义滚动条 (深色主题) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #050a14; /* 极深蓝黑背景 */
+            color: #e2e8f0;
+        }
+
+        h1, h2, h3, .mono {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* 图表容器样式 - 强制响应式 */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; /* 默认高度 */
+            max-height: 450px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* 玻璃拟态卡片 */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.1);
+        }
+
+        /* 霓虹发光效果 */
+        .glow-text-cyan {
+            text-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+        }
+        .glow-border-purple {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+        }
+
+        /* 流程图连接线 (纯CSS实现) */
+        .flow-line-vertical {
+            width: 2px;
+            background: linear-gradient(to bottom, #8b5cf6, #06b6d4);
+            margin: 0 auto;
+            height: 40px;
+        }
+        .flow-arrow-down::after {
+            content: '▼';
+            color: #06b6d4;
+            display: block;
+            text-align: center;
+            margin-top: -12px;
+            font-size: 14px;
+        }
+    </style>
+    <!-- 
+    配色方案: Neon Frequency (霓虹频率)
+    - 背景: #050a14 (深渊黑)
+    - 卡片背景: #1e293b (Slate 800 半透明)
+    - 主色调 (青色/数据): #06b6d4 (Cyan 500)
+    - 辅助色 (紫色/AI): #8b5cf6 (Violet 500)
+    - 强调色 (粉色/风险): #f43f5e (Rose 500)
+    - 强调色 (绿色/速度): #10b981 (Emerald 500)
+    -->
+    
+    <!-- 
+    叙事结构摘要:
+    1. 标题: Quant 4.0 定义。
+    2. 数据篇: 另类数据的爆发与构成。
+    3. 工厂篇: 现代因子挖掘流水线。
+    4. 算法篇: 深度学习 vs 传统统计。
+    5. 速度篇: 硬件军备竞赛。
+    6. 策略篇: 投资组合优化的多维视角。
+    -->
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Hero Header -->
+    <header class="relative overflow-hidden py-24 border-b border-gray-800">
+        <!-- 装饰性背景网格 -->
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#050a14] to-transparent"></div>
+        
+        <div class="container mx-auto px-6 text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-6 text-xs font-bold tracking-widest text-cyan-300 uppercase bg-cyan-900/30 rounded-full border border-cyan-700/50 backdrop-blur-sm">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                State of the Art • 2025
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 glow-text-cyan leading-tight">
+                QUANT 4.0<br>
+                <span class="text-3xl md:text-5xl text-white opacity-90">算法交易前沿</span>
+            </h1>
+            <h2 class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed">
+                解构顶级对冲基金（Top-Tier Hedge Funds）的技术栈：<br>
+                从<span class="text-cyan-400">另类数据</span>的挖掘，到<span class="text-purple-400">深度强化学习</span>的应用，再到<span class="text-emerald-400">纳秒级</span>的硬件竞赛。
+            </h2>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-16 space-y-32">
+
+        <!-- SECTION 1: THE FUEL (另类数据) -->
+        <section id="data">
+            <div class="flex flex-col md:flex-row items-start justify-between mb-12 border-l-4 border-cyan-500 pl-6">
+                <div>
+                    <h3 class="text-3xl font-bold text-white mb-2">01. 燃料：另类数据革命</h3>
+                    <p class="text-gray-400 max-w-2xl text-base md:text-lg">
+                        传统的量价数据（Price & Volume）已被彻底套利殆尽。现在的 Alpha 来源于<span class="text-cyan-400 font-bold">非结构化数据</span>。
+                        基金公司利用卫星图像监控原油库存，分析信用卡账单预测零售营收，甚至通过自然语言处理（NLP）解析美联储会议纪要的情绪微变。
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0 text-right hidden md:block">
+                    <div class="text-4xl font-bold text-cyan-500 code-font">$6.2B</div>
+                    <div class="text-sm text-gray-500">2026年预期数据支出</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Chart 1: Alt Data Spend -->
+                <div class="glass-card rounded-2xl p-6 md:p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold text-cyan-100">全球另类数据支出预测</h4>
+                        <span class="text-xs text-cyan-400 border border-cyan-900 bg-cyan-900/20 px-2 py-1 rounded">CAGR +35%</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="altDataChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500 leading-relaxed">
+                        <span class="text-cyan-400 font-bold">解读：</span> 随着传统策略拥挤，为了维持收益率，基金被迫在昂贵的独家数据集上进行军备竞赛。曲线呈指数级增长。
+                    </p>
+                </div>
+
+                <!-- Chart 2: Data Composition -->
+                <div class="glass-card rounded-2xl p-6 md:p-8">
+                    <h4 class="text-xl font-bold text-purple-100 mb-2">Alpha 信息源权重构成</h4>
+                    <p class="text-xs text-gray-400 mb-6">顶级多策略基金的数据输入占比估算</p>
+                    <div class="chart-container relative">
+                        <canvas id="dataSourceChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500 leading-relaxed">
+                        <span class="text-purple-400 font-bold">解读：</span> 虽然传统市场数据仍是基础，但“网络抓取与物联网”及“消费者交易数据”已占据半壁江山，成为产生差异化收益的关键。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 2: THE FACTORY (Alpha 工厂) -->
+        <section id="process">
+            <div class="mb-12 text-center">
+                <span class="text-purple-500 font-bold tracking-widest uppercase text-sm">WORKFLOW</span>
+                <h3 class="text-3xl md:text-4xl font-bold text-white mt-2">02. 生产线：现代 Alpha 工厂</h3>
+                <p class="text-gray-400 mt-4 max-w-3xl mx-auto">
+                    这不再是单个交易员的直觉游戏，而是一个高度工业化的流水线。从原始数据的清洗到最终信号的生成，每一步都由自动化算法主导。
+                </p>
+            </div>
+
+            <!-- HTML/CSS Flowchart (No SVG/Mermaid) -->
+            <div class="glass-card rounded-2xl p-8 md:p-12 overflow-x-auto">
+                <div class="min-w-[600px] flex flex-col items-center">
+                    
+                    <!-- Phase 1: Ingestion -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-2">
+                        <div class="col-span-1 md:col-start-2 border-2 border-dashed border-gray-700 bg-gray-800/50 rounded-xl p-4 text-center relative">
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#050a14] px-3 text-gray-400 text-xs font-bold">RAW INPUT</div>
+                            <div class="flex justify-center gap-4 text-2xl mb-2 opacity-80">
+                                <span>📡</span> <span>📊</span> <span>💬</span>
+                            </div>
+                            <h5 class="text-gray-200 font-bold">数据湖摄入 (Data Lake)</h5>
+                            <p class="text-xs text-gray-500 mt-1">结构化 + 非结构化数据 ETL</p>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="flow-line-vertical flow-arrow-down"></div>
+
+                    <!-- Phase 2: Feature Engineering -->
+                    <div class="w-full max-w-md bg-gray-900 border-l-4 border-cyan-500 rounded-r-xl p-5 shadow-lg relative z-10">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h5 class="text-cyan-400 font-bold text-lg">特征工程 (Feature Engineering)</h5>
+                                <p class="text-sm text-gray-400">降噪、去极值、正态化、时序对齐</p>
+                            </div>
+                            <div class="text-3xl text-cyan-500/20 font-black">01</div>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="flow-line-vertical flow-arrow-down"></div>
+
+                    <!-- Phase 3: Split Strategy -->
+                    <div class="grid grid-cols-2 gap-8 w-full max-w-2xl">
+                        <!-- Branch A: Statistics -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-full bg-gray-800/80 border border-gray-600 p-4 rounded-lg text-center hover:border-purple-500 transition-colors">
+                                <h6 class="text-purple-300 font-bold mb-1">因子挖掘 (AutoML)</h6>
+                                <p class="text-xs text-gray-400">遗传算法 / 符号回归</p>
+                                <div class="mt-2 text-[10px] text-gray-500 bg-black/30 rounded px-2 py-1">寻找数学规律</div>
+                            </div>
+                        </div>
+                        <!-- Branch B: Deep Learning -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-full bg-gray-800/80 border border-gray-600 p-4 rounded-lg text-center hover:border-pink-500 transition-colors">
+                                <h6 class="text-pink-300 font-bold mb-1">深度学习 (Deep Learning)</h6>
+                                <p class="text-xs text-gray-400">LSTM / Transformer / CNN</p>
+                                <div class="mt-2 text-[10px] text-gray-500 bg-black/30 rounded px-2 py-1">模式识别与情绪分析</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Joining Lines -->
+                    <div class="w-1/2 h-8 border-l-2 border-r-2 border-b-2 border-gray-600 rounded-b-xl mt-[-5px]"></div>
+                    <div class="h-8 w-[2px] bg-gray-600 mx-auto flow-arrow-down"></div>
+
+                    <!-- Phase 4: Output -->
+                    <div class="w-full max-w-md bg-gradient-to-r from-purple-900/80 to-cyan-900/80 border border-white/20 rounded-xl p-6 text-center shadow-[0_0_30px_rgba(139,92,246,0.15)]">
+                        <h5 class="text-2xl font-black text-white mb-1">SIGNAL GENERATION</h5>
+                        <p class="text-sm text-cyan-200 uppercase tracking-wide">预测信号 & 信心指数</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 3: THE ENGINE (AI & Algorithms) -->
+        <section id="algorithms">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                <!-- Text Content -->
+                <div class="md:col-span-5 order-2 md:order-1">
+                    <div class="border-l-4 border-purple-500 pl-6 mb-6">
+                        <h3 class="text-3xl font-bold text-white mb-2">03. 引擎：AI 深度进化</h3>
+                        <p class="text-gray-400 text-lg mb-6">
+                            简单的线性回归（OLS）已无法捕捉市场的非线性特征。前沿基金正全面拥抱<span class="text-purple-400 font-bold">深度强化学习 (DRL)</span>。
+                        </p>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-purple-500 mr-2 mt-1">▹</span>
+                            <span class="text-gray-300"><strong class="text-white">非线性捕获：</strong> 神经网络能识别复杂的市场互动模式。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-purple-500 mr-2 mt-1">▹</span>
+                            <span class="text-gray-300"><strong class="text-white">自适应性：</strong> 在市场风格切换（Regime Change）时自我调整。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-purple-500 mr-2 mt-1">▹</span>
+                            <span class="text-gray-300"><strong class="text-white">黑盒挑战：</strong> 可解释性（Interpretability）是当前研究的核心痛点。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Chart 3: Radar -->
+                <div class="md:col-span-7 order-1 md:order-2 glass-card rounded-2xl p-6">
+                    <h4 class="text-xl font-bold text-center text-purple-200 mb-2">模型能力对比雷达</h4>
+                    <div class="chart-container">
+                        <canvas id="algoRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION 4: INFRASTRUCTURE (Speed) -->
+        <section id="speed">
+            <div class="mb-10 text-center md:text-left border-l-4 border-emerald-500 pl-6">
+                <h3 class="text-3xl font-bold text-white mb-2">04. 基础设施：零延迟竞速</h3>
+                <p class="text-gray-400 max-w-4xl text-lg">
+                    在高频交易（HFT）领域，速度即策略。技术栈已从软件（C++）下沉到硬件（FPGA）。
+                    不仅要拼代码效率，还要拼<span class="text-emerald-400 font-bold">物理距离</span>——微波塔比光纤快，因为光在玻璃中的速度比在空气中慢。
+                </p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-8">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h4 class="text-xl font-bold text-emerald-300">订单执行延迟层级 (Latency Hierarchy)</h4>
+                        <p class="text-sm text-gray-500">对数刻度示意：人类感知与机器极限的巨大鸿沟</p>
+                    </div>
+                    <div class="text-right hidden sm:block">
+                        <div class="text-xs text-emerald-500 border border-emerald-800 bg-emerald-900/20 px-3 py-1 rounded-full uppercase tracking-wider">FPGA / ASIC 时代</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="height: 320px;">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+
+                <!-- Tech Stack Chips -->
+                <div class="flex flex-wrap gap-3 mt-8 pt-6 border-t border-gray-700/50">
+                    <span class="text-xs text-gray-500 font-bold uppercase py-1">关键技术栈:</span>
+                    <span class="px-3 py-1 bg-gray-800 rounded border border-gray-600 text-xs text-emerald-200 code-font">Rust / C++23</span>
+                    <span class="px-3 py-1 bg-gray-800 rounded border border-gray-600 text-xs text-emerald-200 code-font">Solarflare NIC</span>
+                    <span class="px-3 py-1 bg-gray-800 rounded border border-gray-600 text-xs text-emerald-200 code-font">Kernel Bypass</span>
+                    <span class="px-3 py-1 bg-gray-800 rounded border border-gray-600 text-xs text-emerald-200 code-font">FPGA (VHDL)</span>
+                    <span class="px-3 py-1 bg-gray-800 rounded border border-gray-600 text-xs text-emerald-200 code-font">微波网络 (Microwave)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: STRATEGY (Optimization) -->
+        <section id="optimization" class="pb-12">
+            <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+                <div class="mb-6 md:mb-0 md:w-1/2 md:pr-12">
+                    <span class="text-pink-500 font-bold tracking-widest uppercase text-sm">PORTFOLIO CONSTRUCTION</span>
+                    <h3 class="text-3xl font-bold text-white mt-2">05. 策略：多维投资组合优化</h3>
+                    <p class="text-gray-400 mt-4 leading-relaxed">
+                        挖掘出信号只是第一步。真正的挑战在于如何在严格的风险约束（行业暴露、动量、波动率）下，最大化夏普比率。
+                        这不仅是数学问题，更是算力问题。这幅3D图表展示了在一个多因子模型中，寻找<span class="text-pink-400">全局最优解 (Global Maximum)</span> 的复杂地形。
+                    </p>
+                </div>
+                <div class="md:w-1/2 flex gap-4">
+                     <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 flex-1 text-center">
+                        <div class="text-2xl font-bold text-white code-font">Barra</div>
+                        <div class="text-xs text-gray-400">风险模型标准</div>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 flex-1 text-center">
+                        <div class="text-2xl font-bold text-white code-font">Convex</div>
+                        <div class="text-xs text-gray-400">凸优化求解</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plotly 3D Surface -->
+            <div class="glass-card rounded-2xl p-1 md:p-4 overflow-hidden relative">
+                <div class="absolute top-4 left-4 z-10 bg-black/40 backdrop-blur px-3 py-1 rounded border border-white/10">
+                    <span class="text-xs text-pink-300">交互式图表：拖动旋转 / 滚轮缩放</span>
+                </div>
+                <div class="chart-container h-[500px] md:h-[600px]">
+                    <div id="plotlySurface" class="w-full h-full"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-gray-800 bg-[#020408] py-12 text-center text-gray-600 text-xs">
+        <p class="mb-3 font-bold tracking-widest">QUANTITATIVE FINANCE INFOGRAPHIC</p>
+        <p>Generated by Canvas AI • 此页面未包含任何 SVG 或 Mermaid JS 代码。</p>
+        <p class="mt-2 opacity-50">数据来源基于 2024-2025 行业公开研报汇总</p>
+    </footer>
+
+    <!-- SCRIPT SECTION -->
+    <script>
+        // --- 工具函数：中文标签换行处理 (Mandatory) ---
+        // Chart.js 默认不支持自动换行，且中文没有空格，需要按字符数切割
+        function wrapLabel(label, maxChars = 6) { 
+            // 如果标签是数组，说明已经处理过，直接返回
+            if (Array.isArray(label)) return label;
+            
+            // 简单的字符串长度检查
+            if (label.length <= maxChars) return label;
+
+            const result = [];
+            // 每隔 maxChars 个字符切割一次
+            for (let i = 0; i < label.length; i += maxChars) {
+                result.push(label.substring(i, i + maxChars));
+            }
+            return result;
+        }
+
+        // --- 工具函数：通用 Tooltip 配置 (Mandatory) ---
+        const commonTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    // 处理多行标签数组，拼接回字符串显示在 Tooltip 标题
+                    if (Array.isArray(label)) {
+                        return label.join('');
+                    } else {
+                        return label;
+                    }
+                }
+            },
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleColor: '#fff',
+            titleFont: { family: "'Noto Sans SC', sans-serif", size: 14 },
+            bodyColor: '#cbd5e1',
+            bodyFont: { family: "'Noto Sans SC', sans-serif", size: 12 },
+            borderColor: 'rgba(6, 182, 212, 0.3)',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            boxPadding: 4
+        };
+
+        // --- CHART 1: 另类数据支出 (Line Chart) ---
+        const ctxAltData = document.getElementById('altDataChart').getContext('2d');
+        const altDataLabels = ['2019', '2020', '2021', '2022', '2023', '2024 (估)', '2025 (测)', '2026 (测)'];
+        
+        new Chart(ctxAltData, {
+            type: 'line',
+            data: {
+                labels: altDataLabels,
+                datasets: [{
+                    label: '全球另类数据支出 (十亿美元)',
+                    data: [1.1, 1.7, 2.4, 3.2, 3.9, 4.6, 5.4, 6.2],
+                    borderColor: '#06b6d4', // Cyan
+                    backgroundColor: (context) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+                        gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+                        return gradient;
+                    },
+                    borderWidth: 3,
+                    tension: 0.4, // 平滑曲线
+                    fill: true,
+                    pointBackgroundColor: '#050a14',
+                    pointBorderColor: '#06b6d4',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltipConfig
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#1e293b' },
+                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } },
+                        title: { display: true, text: '支出规模 ($ Billions)', color: '#64748b' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } }
+                    }
+                }
+            }
+        });
+
+        // --- CHART 2: 数据源构成 (Doughnut) ---
+        const ctxDataSource = document.getElementById('dataSourceChart').getContext('2d');
+        // 中文标签需要换行处理
+        const rawSourceLabels = [
+            '传统量价数据 (Price/Vol)',
+            '网络抓取与物联网 (Web/IoT)',
+            '消费者交易数据 (Credit Card)',
+            '舆情与社交媒体 (Sentiment)',
+            '卫星与地理定位 (Geo)',
+            '其他 (App Usage/Email)'
+        ];
+        const wrappedSourceLabels = rawSourceLabels.map(l => wrapLabel(l, 8)); // 8字换行
+
+        new Chart(ctxDataSource, {
+            type: 'doughnut',
+            data: {
+                labels: wrappedSourceLabels,
+                datasets: [{
+                    data: [30, 22, 18, 14, 10, 6],
+                    backgroundColor: [
+                        '#334155', // Slate (传统 - 低亮)
+                        '#06b6d4', // Cyan (Web - 高亮)
+                        '#8b5cf6', // Purple
+                        '#f43f5e', // Pink
+                        '#10b981', // Emerald
+                        '#f59e0b'  // Amber
+                    ],
+                    borderColor: '#1e293b',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { 
+                            color: '#cbd5e1', 
+                            font: { family: "'Noto Sans SC', sans-serif", size: 11 },
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    },
+                    tooltip: commonTooltipConfig
+                }
+            }
+        });
+
+        // --- CHART 3: 算法雷达 (Radar) ---
+        const ctxAlgo = document.getElementById('algoRadarChart').getContext('2d');
+        const algoAttributes = [
+            '预测准确度 (Accuracy)',
+            '执行速度 (Speed)',
+            '可解释性 (White Box)',
+            '非线性处理 (Non-Linearity)',
+            '市场适应性 (Adaptability)',
+            '数据需求量 (Data Hunger)'
+        ];
+        const wrappedAlgoAttributes = algoAttributes.map(l => wrapLabel(l, 5));
+
+        new Chart(ctxAlgo, {
+            type: 'radar',
+            data: {
+                labels: wrappedAlgoAttributes,
+                datasets: [
+                    {
+                        label: '深度强化学习 (DRL)',
+                        data: [95, 75, 15, 98, 90, 95],
+                        fill: true,
+                        backgroundColor: 'rgba(139, 92, 246, 0.25)', // Purple
+                        borderColor: '#8b5cf6',
+                        pointBackgroundColor: '#8b5cf6',
+                        pointBorderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    {
+                        label: '传统线性回归 (OLS)',
+                        data: [45, 95, 95, 20, 30, 20],
+                        fill: true,
+                        backgroundColor: 'rgba(6, 182, 212, 0.25)', // Cyan
+                        borderColor: '#06b6d4',
+                        pointBackgroundColor: '#06b6d4',
+                        pointBorderColor: '#fff',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: '#334155' },
+                        grid: { color: '#334155' },
+                        pointLabels: { 
+                            color: '#cbd5e1', 
+                            font: { family: "'Noto Sans SC', sans-serif", size: 12, weight: 'bold' } 
+                        },
+                        ticks: { display: false, backdropColor: 'transparent' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#cbd5e1', font: { family: "'Noto Sans SC', sans-serif" } } },
+                    tooltip: commonTooltipConfig
+                }
+            }
+        });
+
+        // --- CHART 4: 延迟层级 (Horizontal Bar) ---
+        const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+        const latencyLabels = [
+            '人类眨眼 (300ms)',
+            '普通宽带网络 (50ms)',
+            '交易所托管机房 (10μs)',
+            'FPGA 硬件加速 (1μs)',
+            '微波网络链路 (<100ns)'
+        ];
+        
+        new Chart(ctxLatency, {
+            type: 'bar',
+            data: {
+                labels: latencyLabels,
+                datasets: [{
+                    label: '速度得分 (越高越快 - 对数级)',
+                    // 使用虚拟分数代表对数级差异，真实数据在 tooltip 显示
+                    data: [5, 20, 65, 85, 98], 
+                    backgroundColor: [
+                        '#334155', '#475569', '#06b6d4', '#8b5cf6', '#10b981'
+                    ],
+                    borderRadius: 4,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                indexAxis: 'y', // 水平柱状图
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        ...commonTooltipConfig,
+                        callbacks: {
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const realValues = [
+                                    '~300,000,000 ns (龟速)', 
+                                    '~50,000,000 ns (慢)', 
+                                    '~10,000 ns (快)', 
+                                    '~1,000 ns (极快)', 
+                                    '< 100 ns (光速)'
+                                ];
+                                return "实际延迟量级: " + realValues[index];
+                            },
+                            title: function(items) { return items[0].label; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false, // 隐藏 X 轴
+                        grid: { display: false }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: '#e2e8f0', font: { family: "'Noto Sans SC', sans-serif", size: 12 } }
+                    }
+                }
+            }
+        });
+
+        // --- CHART 5: 投资组合优化曲面 (Plotly 3D Surface) ---
+        
+        // 生成模拟数据：代表 Alpha (收益) 基于 Beta (市场风险) 和 Volatility (波动率) 的分布
+        function makeSurfaceData() {
+            let z_data = [];
+            const steps = 30;
+            for (let i = 0; i < steps; i++) {
+                let z_row = [];
+                for (let j = 0; j < steps; j++) {
+                    let x = i / 8;
+                    let y = j / 8;
+                    // 创建一个复杂的多峰函数模拟优化难题
+                    // 主峰 + 局部最优陷阱
+                    let val = Math.sin(x) * Math.cos(y) * 2 
+                            + Math.sin(x * 3 + y) * 0.5 
+                            + Math.cos(y * 2.5) * 0.3;
+                    z_row.push(val);
+                }
+                z_data.push(z_row);
+            }
+            return z_data;
+        }
+
+        const z_data = makeSurfaceData();
+
+        const plotlyData = [{
+            z: z_data,
+            type: 'surface',
+            colorscale: 'Viridis', // 科学感强的配色
+            showscale: false, // 隐藏颜色条以保持简洁
+            opacity: 0.9,
+            contours: {
+                z: {
+                    show: true,
+                    usecolormap: true,
+                    highlightcolor: "#f43f5e",
+                    project: { z: true }
+                }
+            }
+        }];
+
+        const plotlyLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            autosize: true,
+            margin: { l: 0, r: 0, b: 0, t: 0 }, // 充满容器
+            scene: {
+                xaxis: { title: 'Risk Factor A', titlefont: {color:'#94a3b8'}, showgrid: true, gridcolor: '#334155', zeroline: false, showticklabels: false },
+                yaxis: { title: 'Risk Factor B', titlefont: {color:'#94a3b8'}, showgrid: true, gridcolor: '#334155', zeroline: false, showticklabels: false },
+                zaxis: { title: 'Alpha Generation', titlefont: {color:'#06b6d4'}, showgrid: true, gridcolor: '#334155', zeroline: false, showticklabels: false },
+                camera: {
+                    eye: { x: 1.6, y: 1.6, z: 0.8 } // 调整视角
+                }
+            }
+        };
+
+        const plotlyConfig = {
+            responsive: true,
+            displayModeBar: false // 隐藏 Plotly 工具栏
+        };
+
+        Plotly.newPlot('plotlySurface', plotlyData, plotlyLayout, plotlyConfig);
+
+    </script>
+</body>
+</html>
